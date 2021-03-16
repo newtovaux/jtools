@@ -2,6 +2,11 @@
   <v-container>
     <v-row class="text-center">
       <v-col>
+          Ensure you have the <a href="https://chrome.google.com/webstore/detail/allow-cors-access-control/lhobafahddgcelffkeicbaginigeejlf?hl=en">Chrome CORS plugin enabled</a>.
+      </v-col>
+    </v-row>
+    <v-row>
+        <v-col>
         <v-textarea
             class="ma-6"
             outlined
@@ -9,7 +14,6 @@
             label="Email or URL list"
             placeholder="email@domain.com or http://www.web.com"
             v-model="inputs"
-            @change="processedinput"
             ></v-textarea>
       </v-col>
       <v-col>
@@ -25,14 +29,14 @@
     </v-row>
     <v-row>
         <v-col>
-        <v-chip>
+        <v-chip class="ma-1" color="primary">
             <strong>Items:</strong>&nbsp;<span>{{ processedinput }}</span>
         </v-chip>
-        <v-chip>
-            <strong>Processed:</strong>&nbsp;<span>{{ processedoutput }}</span>
-        </v-chip>
-        <v-chip>
+        <v-chip class="ma-1" color="secondary">
             <strong>Email Providers:</strong>&nbsp;<span>{{ processedemailproviders }}</span>
+        </v-chip>
+        <v-chip class="ma-1" color="green">
+            <strong>Processed:</strong>&nbsp;<span>{{ processedoutput }}</span>
         </v-chip>
  </v-col>
     </v-row>
@@ -72,7 +76,26 @@
           :items="items"
           item-key="id"
           class="elevation-1"
-        ></v-data-table>
+        >
+        <template v-slot:item.email="{ item }">
+            <v-chip
+                small
+                :color="getEmailColor(item.email)"
+                dark
+            >
+            {{ item.email }}
+            </v-chip>
+        </template>
+        <template v-slot:item.resolves="{ item }">
+            <v-chip
+                small
+                :color="getResponseColor(item.resolves)"
+                dark
+            >
+            {{ item.resolves }}
+            </v-chip>
+        </template>
+    </v-data-table>
       </v-col>
     </v-row>
   </v-container>
@@ -95,14 +118,14 @@
             align: 'start',
             value: 'input',
             },
-            { text: 'Matches Email Provider', value: 'email' },
             { text: 'Processed URL', value: 'url' },
+            { text: 'Matches Email Provider', value: 'email' },
             { text: 'Resolves?', value: 'resolves' },
             { text: 'Meta', value: 'meta' },
             { text: 'Response Size (B)', value: 'len' },
         ],
         items: [],
-        inputs: "mainbox@email.com\nwhwew@sdfgdgref.com\nhttp://www.yahoo.com\nhttps://www.secure.com\nwww.google.com\nthisisnotreallyadomainisitno.co.ac.uk\nwww.domain.com/something",
+        inputs: "me@gmail.com\nmainbox@email.com\nwhwew@sdfgdgref.com\nhttp://www.yahoo.com\nhttps://www.secure.com\nwww.google.com\nthisisnotreallyadomainisitno.co.ac.uk\nwww.domain.com/something",
         emailsprovidersinput: "gmail.com\nhotmail.com",
         emailproviders: [],
       }
@@ -118,12 +141,21 @@
             return len;
         },
         processedemailproviders: function () {
-             var len = this.emailproviders.length;
-            return len;
+            var spl = this.emailsprovidersinput.split("\n");
+            return spl.length;
         }
     },
     methods:
     {
+        getEmailColor (email) {
+            if (email == 'Yes') return 'green'
+            else return 'red'
+        },
+        getResponseColor (response) {
+            if (response == 'Yes') return 'green'
+            else if (response == 'No') return 'red'
+            else return 'orange'
+        },
         inputchange: function () {
             this.processed.inputlines = this.inputs.split("\n").length();
         },
@@ -206,7 +238,7 @@
                                 id: uuidv4(), 
                                 input: element, 
                                 url: domain, 
-                                resolves: 'No Response',
+                                resolves: 'No',
                                 email: this.emailproviders.includes(domain) ? 'Yes' : 'No',
                             })
                         } else {
