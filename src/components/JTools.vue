@@ -1,148 +1,143 @@
 <template>
-  <v-container>
-    <v-row class="text-center">
-      <v-col>
-          Ensure you have the <a href="https://chrome.google.com/webstore/detail/allow-cors-access-control/lhobafahddgcelffkeicbaginigeejlf?hl=en">Chrome CORS plugin enabled</a>.
-      </v-col>
-    </v-row>
-    <v-row>
-        <v-col>
-        <v-textarea
-            class="ma-6"
-            outlined
-            name="input-7-4"
-            label="Email or URL list"
-            placeholder="email@domain.com or http://www.web.com"
-            v-model="inputs"
-            ></v-textarea>
-      </v-col>
-      <v-col>
-          <v-textarea
-            class="ma-6"
-            outlined
-            name="input-7-4"
-            label="Email Providers"
-            placeholder="gmail.com"
-            v-model="emailsprovidersinput"
-            ></v-textarea>
-      </v-col>
-    </v-row>
-    <v-row>
-        <v-col>
-        <v-chip class="ma-1" color="primary">
-            <strong>Items:</strong>&nbsp;<span>{{ processedinput }}</span>
-        </v-chip>
-        <v-chip class="ma-1" color="secondary">
-            <strong>Email Providers:</strong>&nbsp;<span>{{ processedemailproviders }}</span>
-        </v-chip>
-        <v-chip class="ma-1" color="green">
-            <strong>Processed:</strong>&nbsp;<span>{{ processedoutput }}</span>
-        </v-chip>
- </v-col>
-    </v-row>
-    <v-row>
-        <v-col>
-        <v-btn
-          class="ma-1"
-          depressed
-          color="primary"
-          @click="process"
-        >
-          Process
-        </v-btn>
-        <v-btn
-          class="ma-1"
-          depressed
-          color="secondary"
-          @click="excel"
-        >
-          Export
-        </v-btn>
-        <v-btn
-          class="ma-1"
-          depressed
-          color="secondary"
-          @click="clear()"
-        >
-          Clear
-        </v-btn>
-        </v-col>
-    </v-row>
-    <v-row>
-        <v-col>
-        <v-data-table
-          dense
-          :headers="headers"
-          :items="items"
-          item-key="id"
-          class="elevation-1"
-        >
-        <template v-slot:[`item.email`]="{ item }">
-            <v-chip
-                small
-                :color="getEmailColor(item.email)"
-                dark
-            >
-            {{ item.email }}
-            </v-chip>
-        </template>
-        <template v-slot:[`item.resolves`]="{ item }">
-            <v-chip
-                small
-                :color="getResponseColor(item.resolves)"
-                dark
-            >
-            {{ item.resolves }}
-            </v-chip>
-        </template>
-    </v-data-table>
-      </v-col>
-    </v-row>
-  </v-container>
+    <v-container>
+        <v-row class="text-center">
+            <v-col>
+                Ensure you have the
+                <a
+                    href="https://chrome.google.com/webstore/detail/allow-cors-access-control/lhobafahddgcelffkeicbaginigeejlf?hl=en"
+                    >Chrome CORS plugin enabled</a
+                >.
+            </v-col>
+        </v-row>
+        <v-row>
+            <v-col>
+                <v-textarea
+                    class="ma-6"
+                    outlined
+                    name="input-7-4"
+                    label="Email or URL list"
+                    placeholder="email@domain.com or http://www.web.com"
+                    v-model="inputs"
+                ></v-textarea>
+            </v-col>
+            <v-col>
+                <v-textarea
+                    class="ma-6"
+                    outlined
+                    name="input-7-4"
+                    label="Email Providers"
+                    placeholder="gmail.com"
+                    v-model="emailsprovidersinput"
+                ></v-textarea>
+            </v-col>
+        </v-row>
+        <v-row>
+            <v-col>
+                <v-chip class="ma-1" color="primary">
+                    <strong>Items:</strong>&nbsp;<span>{{
+                        processedinput
+                    }}</span>
+                </v-chip>
+                <v-chip class="ma-1" color="secondary">
+                    <strong>Email Providers:</strong>&nbsp;<span>{{
+                        processedemailproviders
+                    }}</span>
+                </v-chip>
+                <v-chip class="ma-1" color="green">
+                    <strong>Processed:</strong>&nbsp;<span>{{
+                        processedoutput
+                    }}</span>
+                </v-chip>
+            </v-col>
+        </v-row>
+        <v-row>
+            <v-col>
+                <v-btn class="ma-1" depressed color="primary" @click="process">
+                    Process
+                </v-btn>
+                <v-btn class="ma-1" depressed color="secondary" @click="excel">
+                    Export
+                </v-btn>
+                <v-btn
+                    class="ma-1"
+                    depressed
+                    color="secondary"
+                    @click="clear()"
+                >
+                    Clear
+                </v-btn>
+            </v-col>
+        </v-row>
+        <v-row>
+            <v-col>
+                <v-data-table
+                    dense
+                    :headers="headers"
+                    :items="items"
+                    item-key="id"
+                    class="elevation-1"
+                >
+                    <template v-slot:[`item.email`]="{ item }">
+                        <v-chip small :color="getEmailColor(item.email)" dark>
+                            {{ item.email }}
+                        </v-chip>
+                    </template>
+                    <template v-slot:[`item.resolves`]="{ item }">
+                        <v-chip
+                            small
+                            :color="getResponseColor(item.resolves)"
+                            dark
+                        >
+                            {{ item.resolves }}
+                        </v-chip>
+                    </template>
+                </v-data-table>
+            </v-col>
+        </v-row>
+    </v-container>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-  import { v4 as uuidv4 } from 'uuid';
-  let { json2excel } = require('js2excel');
+import Vue from "vue";
+import { v4 as uuidv4 } from "uuid";
+let { json2excel } = require("js2excel");
 
-    interface Entity {
-        id: string,
-        input: string, 
-        url: string, 
-        email: string,
-        resolves: string,
-        meta: string,
-        len: number
-    }
+interface Entity {
+    id: string;
+    input: string;
+    url: string;
+    email: string;
+    resolves: string;
+    meta: string;
+    len: number;
+}
 
-  const axios = require('axios');
+const axios = require("axios");
 
-  export default Vue.extend({
-    name: 'JTools',
+export default Vue.extend({
+    name: "JTools",
 
     data: function () {
-      return {
-        headers: [
-            {
-            text: 'Input',
-            align: 'start',
-            value: 'input',
-            },
-            { text: 'Processed URL', value: 'url' },
-            { text: 'Matches Email Provider', value: 'email' },
-            { text: 'Resolves?', value: 'resolves' },
-            { text: 'Meta', value: 'meta' },
-            { text: 'Response Size (B)', value: 'len' },
-        ],
-        items: [] as Entity[],
-        inputs: "me@gmail.com\nmainbox@email.com\nwhwew@sdfgdgref.com\nhttp://www.yahoo.com\nhttps://www.secure.com\nwww.google.com\nthisisnotreallyadomainisitno.co.ac.uk\nwww.domain.com/something" as string,
-        emailsprovidersinput: "gmail.com\nhotmail.com" as string,
-        emailproviders: [] as string[],
-      }
-  },
-    computed:
-    {
+        return {
+            headers: [
+                {
+                    text: "Input",
+                    align: "start",
+                    value: "input",
+                },
+                { text: "Processed URL", value: "url" },
+                { text: "Matches Email Provider", value: "email" },
+                { text: "Resolves?", value: "resolves" },
+                { text: "Meta", value: "meta" },
+                { text: "Response Size (B)", value: "len" },
+            ],
+            items: [] as Entity[],
+            inputs: "me@gmail.com\nmainbox@email.com\nwhwew@sdfgdgref.com\nhttp://www.yahoo.com\nhttps://www.secure.com\nwww.google.com\nthisisnotreallyadomainisitno.co.ac.uk\nwww.domain.com/something" as string,
+            emailsprovidersinput: "gmail.com\nhotmail.com" as string,
+            emailproviders: [] as string[],
+        };
+    },
+    computed: {
         processedinput: function (): number {
             var spl = this.inputs.split("\n");
             return spl.length;
@@ -154,18 +149,17 @@ import Vue from 'vue';
         processedemailproviders: function (): number {
             var spl = this.emailsprovidersinput.split("\n");
             return spl.length;
-        }
-    },
-    methods:
-    {
-        getEmailColor (email: string) {
-            if (email == 'Yes') return 'green'
-            else return 'red'
         },
-        getResponseColor (response: string) {
-            if (response == 'Yes') return 'green'
-            else if (response == 'No') return 'red'
-            else return 'orange'
+    },
+    methods: {
+        getEmailColor(email: string) {
+            if (email == "Yes") return "green";
+            else return "red";
+        },
+        getResponseColor(response: string) {
+            if (response == "Yes") return "green";
+            else if (response == "No") return "red";
+            else return "orange";
         },
         clear: function (): void {
             this.items = [];
@@ -174,20 +168,18 @@ import Vue from 'vue';
         process: function (): void {
             // Process the email providers
 
-            this.emailsprovidersinput.split("\n").forEach(element => {
+            this.emailsprovidersinput.split("\n").forEach((element) => {
                 element = element.trim();
-                if (element != '') {
+                if (element != "") {
                     this.emailproviders.push(element);
                 }
             });
 
             this.inputs.split("\n").forEach((element: string) => {
-
                 element = element.trim();
 
-                if (element != ''){
-
-                    var domain = '';
+                if (element != "") {
+                    var domain = "";
 
                     var emailre = /(.*)@(?<domain>.*)/;
                     var em = element.match(emailre);
@@ -200,88 +192,95 @@ import Vue from 'vue';
 
                     if (em != null) {
                         // looks like an email
-                        domain = em?.groups?.domain ?? 'Unknown';          
+                        domain = em?.groups?.domain ?? "Unknown";
                     } else if (um != null) {
                         // looks like an URL
-                        domain = um?.groups?.domain ?? 'Unknown';
+                        domain = um?.groups?.domain ?? "Unknown";
                     } else if (im != null) {
-                        domain = im?.groups?.domain ?? 'Unknown';
+                        domain = im?.groups?.domain ?? "Unknown";
                     }
 
-                    // check if the element matches 
+                    // check if the element matches
 
-                    axios.get(`https://${domain}`)
-                    .then((response: any) => {
+                    axios
+                        .get(`https://${domain}`)
+                        .then((response: any) => {
+                            var metare = /<title>(?<title>.*?)<\/title>/ms;
+                            var mm = response.data.match(metare);
 
-                        var metare = /<title>(?<title>.*?)<\/title>/ms;
-                        var mm = response.data.match(metare);
-
-                        this.items.push({
-                            id: uuidv4(), 
-                            input: element, 
-                            url: domain, 
-                            email: this.emailproviders.includes(domain) ? 'Yes' : 'No',
-                            resolves: response.status == 200 ? 'Yes' : 'No (Not 200)',
-                            meta: mm != null ? mm.groups.title.trim() : null,
-                            len: response.data.length
+                            this.items.push({
+                                id: uuidv4(),
+                                input: element,
+                                url: domain,
+                                email: this.emailproviders.includes(domain)
+                                    ? "Yes"
+                                    : "No",
+                                resolves:
+                                    response.status == 200
+                                        ? "Yes"
+                                        : "No (Not 200)",
+                                meta:
+                                    mm != null ? mm.groups.title.trim() : null,
+                                len: response.data.length,
+                            });
                         })
-                    })
-                    .catch((error: any) => {
-                        // `error.request` is an instance of XMLHttpRequest in the browser
-                        if (error.response) {
-                            // Request made and server responded
-                            this.items.push({
-                                id: uuidv4(), 
-                                input: element, 
-                                url: domain, 
-                                resolves: error.response.status,
-                                email: this.emailproviders.includes(domain) ? 'Yes' : 'No',
-                                meta: '',
-                                len: 0
-                            })
-
-                        } else if (error.request) {
-                            // The request was made but no response was received
-                            this.items.push({
-                                id: uuidv4(), 
-                                input: element, 
-                                url: domain, 
-                                resolves: 'No',
-                                email: this.emailproviders.includes(domain) ? 'Yes' : 'No',
-                                meta: '',
-                                len: 0
-                            })
-                        } else {
-                            // Something happened in setting up the request that triggered an Error
-                            this.items.push({
-                                id: uuidv4(), 
-                                input: element, 
-                                url: domain, 
-                                resolves: 'Error',
-                                email: this.emailproviders.includes(domain) ? 'Yes' : 'No',
-                                meta: '',
-                                len: 0
-                            })
-                        }
-                    
-                    });
-
+                        .catch((error: any) => {
+                            // `error.request` is an instance of XMLHttpRequest in the browser
+                            if (error.response) {
+                                // Request made and server responded
+                                this.items.push({
+                                    id: uuidv4(),
+                                    input: element,
+                                    url: domain,
+                                    resolves: error.response.status,
+                                    email: this.emailproviders.includes(domain)
+                                        ? "Yes"
+                                        : "No",
+                                    meta: "",
+                                    len: 0,
+                                });
+                            } else if (error.request) {
+                                // The request was made but no response was received
+                                this.items.push({
+                                    id: uuidv4(),
+                                    input: element,
+                                    url: domain,
+                                    resolves: "No",
+                                    email: this.emailproviders.includes(domain)
+                                        ? "Yes"
+                                        : "No",
+                                    meta: "",
+                                    len: 0,
+                                });
+                            } else {
+                                // Something happened in setting up the request that triggered an Error
+                                this.items.push({
+                                    id: uuidv4(),
+                                    input: element,
+                                    url: domain,
+                                    resolves: "Error",
+                                    email: this.emailproviders.includes(domain)
+                                        ? "Yes"
+                                        : "No",
+                                    meta: "",
+                                    len: 0,
+                                });
+                            }
+                        });
                 }
-
             });
-
         },
         excel: function () {
             let data = this.items;
             try {
                 json2excel({
                     data,
-                    name: 'user-info-data',
+                    name: "user-info-data",
                 });
             } catch (e) {
-                console.error('export error');
+                console.error("export error");
             }
-        }
+        },
     },
-  });
+});
 </script>
