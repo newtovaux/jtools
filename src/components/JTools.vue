@@ -10,7 +10,7 @@
             </v-col>
         </v-row>
         <v-row>
-            <v-col>
+            <v-col cols="8">
                 <v-textarea
                     class="ma-6"
                     outlined
@@ -20,7 +20,7 @@
                     v-model="inputs"
                 ></v-textarea>
             </v-col>
-            <v-col>
+            <v-col cols="4">
                 <v-textarea
                     class="ma-6"
                     outlined
@@ -52,12 +52,6 @@
         </v-row>
         <v-row>
             <v-col>
-                <v-btn class="ma-1" depressed color="primary" @click="process">
-                    Process
-                </v-btn>
-                <v-btn class="ma-1" depressed color="secondary" @click="excel">
-                    Export
-                </v-btn>
                 <v-btn
                     class="ma-1"
                     depressed
@@ -65,6 +59,12 @@
                     @click="clear()"
                 >
                     Clear
+                </v-btn>
+                <v-btn class="ma-1" depressed color="primary" @click="process">
+                    Process
+                </v-btn>
+                <v-btn class="ma-1" depressed color="secondary" @click="excel">
+                    Export
                 </v-btn>
             </v-col>
         </v-row>
@@ -79,28 +79,45 @@
         </v-row>
         <v-row>
             <v-col>
-                <v-data-table
-                    dense
-                    :headers="headers"
-                    :items="items"
-                    item-key="id"
-                    class="elevation-1"
-                >
-                    <template v-slot:[`item.email`]="{ item }">
-                        <v-chip small :color="getEmailColor(item.email)" dark>
-                            {{ item.email }}
-                        </v-chip>
-                    </template>
-                    <template v-slot:[`item.resolves`]="{ item }">
-                        <v-chip
-                            small
-                            :color="getResponseColor(item.resolves)"
-                            dark
-                        >
-                            {{ item.resolves }}
-                        </v-chip>
-                    </template>
-                </v-data-table>
+                <v-card>
+                    <v-card-title>
+                        <v-spacer></v-spacer>
+                        <v-text-field
+                            v-model="search"
+                            append-icon="mdi-magnify"
+                            label="Search"
+                            single-line
+                            hide-details
+                        ></v-text-field>
+                    </v-card-title>
+                    <v-data-table
+                        dense
+                        :headers="headers"
+                        :items="items"
+                        :search="search"
+                        item-key="id"
+                        class="elevation-1"
+                    >
+                        <template v-slot:[`item.email`]="{ item }">
+                            <v-chip
+                                small
+                                :color="getEmailColor(item.email)"
+                                dark
+                            >
+                                {{ item.email }}
+                            </v-chip>
+                        </template>
+                        <template v-slot:[`item.resolves`]="{ item }">
+                            <v-chip
+                                small
+                                :color="getResponseColor(item.resolves)"
+                                dark
+                            >
+                                {{ item.resolves }}
+                            </v-chip>
+                        </template>
+                    </v-data-table>
+                </v-card>
             </v-col>
         </v-row>
     </v-container>
@@ -144,6 +161,7 @@ export default Vue.extend({
             inputs: "me@gmail.com\nmainbox@email.com\nwhwew@sdfgdgref.com\nhttp://www.yahoo.com\nhttps://www.secure.com\nwww.google.com\nthisisnotreallyadomainisitno.co.ac.uk\nwww.domain.com/something" as string,
             emailsprovidersinput: "gmail.com\nhotmail.com" as string,
             emailproviders: [] as string[],
+            search: '' as string
         };
     },
     computed: {
