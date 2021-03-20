@@ -70,6 +70,15 @@
         </v-row>
         <v-row>
             <v-col>
+                <v-progress-linear height="25" :value="progress">
+                    <template v-slot:default="{ value }">
+                        <strong>{{ Math.ceil(value) }}%</strong>
+                    </template>
+                </v-progress-linear>
+            </v-col>
+        </v-row>
+        <v-row>
+            <v-col>
                 <v-data-table
                     dense
                     :headers="headers"
@@ -100,6 +109,8 @@
 <script lang="ts">
 import Vue from "vue";
 import { v4 as uuidv4 } from "uuid";
+import axios from "axios";
+
 let { json2excel } = require("js2excel");
 
 interface Entity {
@@ -111,8 +122,6 @@ interface Entity {
     meta: string;
     len: number;
 }
-
-const axios = require("axios");
 
 export default Vue.extend({
     name: "JTools",
@@ -139,16 +148,31 @@ export default Vue.extend({
     },
     computed: {
         processedinput: function (): number {
-            var spl = this.inputs.split("\n");
-            return spl.length;
+            let spl: Array<string> = this.inputs.split("\n");
+            let count: number = 0;
+            spl.forEach((element: string) => {
+                if (element.trim() !== "") {
+                    count++;
+                }
+            });
+            return count;
         },
         processedoutput: function (): number {
-            var len = this.items.length;
+            let len: number = this.items.length;
             return len;
         },
         processedemailproviders: function (): number {
-            var spl = this.emailsprovidersinput.split("\n");
-            return spl.length;
+            let spl: Array<string> = this.emailsprovidersinput.split("\n");
+            let count: number = 0;
+            spl.forEach((element: string) => {
+                if (element.trim() !== "") {
+                    count++;
+                }
+            });
+            return count;
+        },
+        progress: function (): number {
+            return (this.processedoutput / this.processedinput) * 100;
         },
     },
     methods: {
@@ -166,9 +190,10 @@ export default Vue.extend({
             console.clear();
         },
         process: function (): void {
+            this.clear();
             // Process the email providers
 
-            this.emailsprovidersinput.split("\n").forEach((element) => {
+            this.emailsprovidersinput.split("\n").forEach((element: string) => {
                 element = element.trim();
                 if (element != "") {
                     this.emailproviders.push(element);
@@ -178,17 +203,14 @@ export default Vue.extend({
             this.inputs.split("\n").forEach((element: string) => {
                 element = element.trim();
 
-                if (element != "") {
-                    var domain = "";
+                if (element !== "") {
+                    let domain = "";
 
-                    var emailre = /(.*)@(?<domain>.*)/;
-                    var em = element.match(emailre);
+                    let em = element.match(/(.*)@(?<domain>.*)/);
 
-                    var urlre = /^http[s]?:\/\/(?<domain>.*)/;
-                    var um = element.match(urlre);
+                    let um = element.match(/^http[s]?:\/\/(?<domain>.*)/);
 
-                    var urire = /^(?<domain>\w+(\.\w+)+)/;
-                    var im = element.match(urire);
+                    let im = element.match(/^(?<domain>\w+(\.\w+)+)/);
 
                     if (em != null) {
                         // looks like an email
@@ -205,8 +227,9 @@ export default Vue.extend({
                     axios
                         .get(`https://${domain}`)
                         .then((response: any) => {
-                            var metare = /<title>(?<title>.*?)<\/title>/ms;
-                            var mm = response.data.match(metare);
+                            let mm = response.data.match(
+                                /<title>(?<title>.*?)<\/title>/ms
+                            );
 
                             this.items.push({
                                 id: uuidv4(),
@@ -271,7 +294,19 @@ export default Vue.extend({
             });
         },
         excel: function () {
-            let data = this.items;
+            // strip out the id
+
+            let data = this.items.map((x) => {
+                return {
+                    input: x.input,
+                    url: x.url,
+                    resolves: x.resolves,
+                    email: x.email,
+                    meta: x.meta,
+                    len: x.len,
+                };
+            });
+
             try {
                 json2excel({
                     data,
