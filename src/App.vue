@@ -17,18 +17,14 @@
   </v-app>
 </template>
 
-<script>
-import JTools from './components/JTools';
+<script lang="ts">
+import { Component, Vue } from 'vue-property-decorator';
+import JTools from './components/JTools.vue';
 
-export default {
-  name: 'App',
-
+@Component({
   components: {
     JTools,
   },
-
-  data: () => ({
-    //
-  }),
-};
+})
+export default class App extends Vue {}
 </script>

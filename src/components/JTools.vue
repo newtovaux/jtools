@@ -102,14 +102,23 @@
 </template>
 
 <script lang="ts">
-
+import Vue from 'vue';
   import { v4 as uuidv4 } from 'uuid';
   let { json2excel } = require('js2excel');
 
+    interface Entity {
+        id: string,
+        input: string, 
+        url: string, 
+        email: string,
+        resolves: string,
+        meta: string,
+        len: number
+    }
 
   const axios = require('axios');
 
-  export default {
+  export default Vue.extend({
     name: 'JTools',
 
     data: function () {
@@ -126,46 +135,43 @@
             { text: 'Meta', value: 'meta' },
             { text: 'Response Size (B)', value: 'len' },
         ],
-        items: [],
-        inputs: "me@gmail.com\nmainbox@email.com\nwhwew@sdfgdgref.com\nhttp://www.yahoo.com\nhttps://www.secure.com\nwww.google.com\nthisisnotreallyadomainisitno.co.ac.uk\nwww.domain.com/something",
-        emailsprovidersinput: "gmail.com\nhotmail.com",
-        emailproviders: [],
+        items: [] as Entity[],
+        inputs: "me@gmail.com\nmainbox@email.com\nwhwew@sdfgdgref.com\nhttp://www.yahoo.com\nhttps://www.secure.com\nwww.google.com\nthisisnotreallyadomainisitno.co.ac.uk\nwww.domain.com/something" as string,
+        emailsprovidersinput: "gmail.com\nhotmail.com" as string,
+        emailproviders: [] as string[],
       }
   },
     computed:
     {
-        processedinput: function () {
+        processedinput: function (): number {
             var spl = this.inputs.split("\n");
             return spl.length;
         },
-        processedoutput: function () {
+        processedoutput: function (): number {
             var len = this.items.length;
             return len;
         },
-        processedemailproviders: function () {
+        processedemailproviders: function (): number {
             var spl = this.emailsprovidersinput.split("\n");
             return spl.length;
         }
     },
     methods:
     {
-        getEmailColor (email) {
+        getEmailColor (email: string) {
             if (email == 'Yes') return 'green'
             else return 'red'
         },
-        getResponseColor (response) {
+        getResponseColor (response: string) {
             if (response == 'Yes') return 'green'
             else if (response == 'No') return 'red'
             else return 'orange'
         },
-        inputchange: function () {
-            this.processed.inputlines = this.inputs.split("\n").length();
-        },
-        clear: function () {
-            this.itmes = [];
+        clear: function (): void {
+            this.items = [];
             console.clear();
         },
-        process: function () {
+        process: function (): void {
             // Process the email providers
 
             this.emailsprovidersinput.split("\n").forEach(element => {
@@ -175,7 +181,7 @@
                 }
             });
 
-            this.inputs.split("\n").forEach(element => {
+            this.inputs.split("\n").forEach((element: string) => {
 
                 element = element.trim();
 
@@ -194,18 +200,18 @@
 
                     if (em != null) {
                         // looks like an email
-                        domain = em.groups.domain;          
+                        domain = em?.groups?.domain ?? 'Unknown';          
                     } else if (um != null) {
                         // looks like an URL
-                        domain = um.groups.domain;
+                        domain = um?.groups?.domain ?? 'Unknown';
                     } else if (im != null) {
-                        domain = im.groups.domain;
+                        domain = im?.groups?.domain ?? 'Unknown';
                     }
 
                     // check if the element matches 
 
-                    axios.get('https://' + domain)
-                    .then((response) => {
+                    axios.get(`https://${domain}`)
+                    .then((response: any) => {
 
                         var metare = /<title>(?<title>.*?)<\/title>/ms;
                         var mm = response.data.match(metare);
@@ -220,7 +226,7 @@
                             len: response.data.length
                         })
                     })
-                    .catch((error) => {
+                    .catch((error: any) => {
                         // `error.request` is an instance of XMLHttpRequest in the browser
                         console.log(error.request);
                         if (error.response) {
@@ -231,6 +237,8 @@
                                 url: domain, 
                                 resolves: error.response.status,
                                 email: this.emailproviders.includes(domain) ? 'Yes' : 'No',
+                                meta: '',
+                                len: 0
                             })
 
                         } else if (error.request) {
@@ -241,6 +249,8 @@
                                 url: domain, 
                                 resolves: 'No',
                                 email: this.emailproviders.includes(domain) ? 'Yes' : 'No',
+                                meta: '',
+                                len: 0
                             })
                         } else {
                             // Something happened in setting up the request that triggered an Error
@@ -251,6 +261,8 @@
                                 url: domain, 
                                 resolves: 'Error',
                                 email: this.emailproviders.includes(domain) ? 'Yes' : 'No',
+                                meta: '',
+                                len: 0
                             })
                         }
                     
@@ -275,5 +287,5 @@
             }
         }
     },
-  }
+  });
 </script>
