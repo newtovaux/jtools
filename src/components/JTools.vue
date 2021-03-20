@@ -77,7 +77,7 @@
           item-key="id"
           class="elevation-1"
         >
-        <template v-slot:item.email="{ item }">
+        <template v-slot:[`item.email`]="{ item }">
             <v-chip
                 small
                 :color="getEmailColor(item.email)"
@@ -86,7 +86,7 @@
             {{ item.email }}
             </v-chip>
         </template>
-        <template v-slot:item.resolves="{ item }">
+        <template v-slot:[`item.resolves`]="{ item }">
             <v-chip
                 small
                 :color="getResponseColor(item.resolves)"
@@ -101,10 +101,12 @@
   </v-container>
 </template>
 
-<script>
+<script lang="ts">
 
   import { v4 as uuidv4 } from 'uuid';
-  import {json2excel} from 'js2excel';
+  let { json2excel } = require('js2excel');
+
+
   const axios = require('axios');
 
   export default {
@@ -169,9 +171,6 @@
                 }
             });
 
-            console.log(this.emailproviders);
-
-
             this.inputs.split("\n").forEach(element => {
 
                 element = element.trim();
@@ -199,9 +198,6 @@
                         domain = im.groups.domain;
                     }
 
-                    //var pos = element.indexOf('@');
-                    //var domain = element.substring(pos + 1);
-
                     // check if the element matches 
 
                     axios.get('http://' + domain)
@@ -209,7 +205,6 @@
 
                         var metare = /<title>(?<title>.*?)<\/title>/ms;
                         var mm = response.data.match(metare);
-                        
 
                         this.items.push({
                             id: uuidv4(), 
@@ -252,17 +247,12 @@
                                 email: this.emailproviders.includes(domain) ? 'Yes' : 'No',
                             })
                         }
-
-
-
                     
                     });
 
                 }
 
             });
-
-        
 
         },
         excel: function () {
