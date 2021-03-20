@@ -200,7 +200,7 @@
 
                     // check if the element matches 
 
-                    axios.get('http://' + domain)
+                    axios.get('https://' + domain)
                     .then((response) => {
 
                         var metare = /<title>(?<title>.*?)<\/title>/ms;
