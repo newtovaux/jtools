@@ -228,7 +228,6 @@ import Vue from 'vue';
                     })
                     .catch((error: any) => {
                         // `error.request` is an instance of XMLHttpRequest in the browser
-                        console.log(error.request);
                         if (error.response) {
                             // Request made and server responded
                             this.items.push({
@@ -254,7 +253,6 @@ import Vue from 'vue';
                             })
                         } else {
                             // Something happened in setting up the request that triggered an Error
-                            console.log('Cant request', error.message);
                             this.items.push({
                                 id: uuidv4(), 
                                 input: element, 
@@ -274,8 +272,6 @@ import Vue from 'vue';
 
         },
         excel: function () {
-            console.log('excel');
-
             let data = this.items;
             try {
                 json2excel({
