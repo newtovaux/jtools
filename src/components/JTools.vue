@@ -62,7 +62,7 @@
           class="ma-1"
           depressed
           color="secondary"
-          @click="items = []"
+          @click="clear()"
         >
           Clear
         </v-btn>
@@ -161,6 +161,10 @@
         inputchange: function () {
             this.processed.inputlines = this.inputs.split("\n").length();
         },
+        clear: function () {
+            this.itmes = [];
+            console.clear();
+        },
         process: function () {
             // Process the email providers
 
@@ -217,6 +221,8 @@
                         })
                     })
                     .catch((error) => {
+                        // `error.request` is an instance of XMLHttpRequest in the browser
+                        console.log(error.request);
                         if (error.response) {
                             // Request made and server responded
                             this.items.push({
