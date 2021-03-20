@@ -15,7 +15,7 @@
                     class="ma-6"
                     outlined
                     name="input-7-4"
-                    label="Email or URL list"
+                    :label="listlabel"
                     placeholder="email@domain.com or http://www.web.com"
                     v-model="inputs"
                 ></v-textarea>
@@ -25,29 +25,10 @@
                     class="ma-6"
                     outlined
                     name="input-7-4"
-                    label="Email Providers"
+                    :label="emaillabel"
                     placeholder="gmail.com"
                     v-model="emailsprovidersinput"
                 ></v-textarea>
-            </v-col>
-        </v-row>
-        <v-row>
-            <v-col>
-                <v-chip class="ma-1" color="primary">
-                    <strong>Items:</strong>&nbsp;<span>{{
-                        processedinput
-                    }}</span>
-                </v-chip>
-                <v-chip class="ma-1" color="secondary">
-                    <strong>Email Providers:</strong>&nbsp;<span>{{
-                        processedemailproviders
-                    }}</span>
-                </v-chip>
-                <v-chip class="ma-1" color="green">
-                    <strong>Processed:</strong>&nbsp;<span>{{
-                        processedoutput
-                    }}</span>
-                </v-chip>
             </v-col>
         </v-row>
         <v-row>
@@ -72,7 +53,7 @@
             <v-col>
                 <v-progress-linear height="25" :value="progress">
                     <template v-slot:default="{ value }">
-                        <strong>{{ Math.ceil(value) }}%</strong>
+                        <strong class="mr-2">{{ Math.ceil(value) }}%</strong>({{ processedoutput }} / {{ processedinput }})
                     </template>
                 </v-progress-linear>
             </v-col>
@@ -174,6 +155,12 @@ export default Vue.extend({
                 }
             });
             return count;
+        },
+        listlabel: function (): string {
+            return `Email or URL list (${this.processedinput})`
+        },
+        emaillabel: function (): string {
+            return `Email providers (${this.processedemailproviders})`
         },
         processedoutput: function (): number {
             let len: number = this.items.length;
