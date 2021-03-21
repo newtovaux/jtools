@@ -135,7 +135,11 @@ interface Entity {
 }
 
 export default defineComponent({
-    name: "JTools",
+    name: "jTools",
+
+    metaInfo: {
+      title: 'jTools',
+    },
 
     setup() {
         const headers = [
