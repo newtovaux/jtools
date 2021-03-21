@@ -77,6 +77,12 @@
                             Export
                         </v-btn>
                         <v-spacer></v-spacer>
+                        <v-switch
+                            inset
+                            label="Assume https"
+                            v-model="https"
+                        ></v-switch>
+                        <v-spacer></v-spacer>
                         <v-text-field
                             v-model="search"
                             append-icon="mdi-magnify"
@@ -148,7 +154,7 @@ export default defineComponent({
             { text: "Processed URL", value: "url" },
             { text: "Matches Email Provider", value: "email" },
             { text: "Resolves?", value: "resolves" },
-            { text: "Meta", value: "meta" },
+            { text: "Title", value: "meta" },
             { text: "Response Size (B)", value: "len" },
         ];
 
@@ -160,10 +166,11 @@ export default defineComponent({
 
         const emailsprovidersinput = ref("gmail.com\nhotmail.com\n");
 
-        // TOFO fix this 'any'
-        const emailproviders = ref<any>([]);
+        const emailproviders = ref<string[]>([]);
 
         const search = ref("");
+
+        const https = ref(true);
 
         const processedinput = () => {
             let spl: Array<string> = inputs.value.split("\n");
@@ -267,7 +274,7 @@ export default defineComponent({
                     // check if the element matches
 
                     axios
-                        .get(`https://${domain}`)
+                        .get((https.value ? "https" : "http") + `://${domain}`)
                         .then((response: any) => {
                             let mm = response.data.match(
                                 /<title>(?<title>.*?)<\/title>/ms
@@ -381,6 +388,7 @@ export default defineComponent({
             getEmailColor,
             getResponseColor,
             clear,
+            https,
         };
     },
 });
