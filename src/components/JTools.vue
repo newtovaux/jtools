@@ -15,7 +15,7 @@
                 <v-textarea
                     outlined
                     name="input-7-4"
-                    :label="listlabel"
+                    :label="listlabel()"
                     placeholder="email@domain.com or http://www.web.com"
                     v-model="inputs"
                     hide-details="true"
@@ -25,7 +25,7 @@
                 <v-textarea
                     outlined
                     name="input-7-4"
-                    :label="emaillabel"
+                    :label="emaillabel()"
                     placeholder="gmail.com"
                     v-model="emailsprovidersinput"
                     hide-details="true"
@@ -36,14 +36,14 @@
             <v-col>
                 <v-progress-linear
                     height="25"
-                    :value="progress"
-                    :color="progressColor"
+                    :value="progress()"
+                    :color="progressColor()"
                 >
                     <template v-slot:default="{ value }">
                         <strong class="mr-2">{{ Math.ceil(value) }}%</strong>({{
-                            processedoutput
+                            processedoutput()
                         }}
-                        / {{ processedinput }})
+                        / {{ processedinput() }})
                     </template>
                 </v-progress-linear>
             </v-col>
@@ -119,8 +119,7 @@
 </template>
 
 <script lang="ts">
-
-import {defineComponent } from '@vue/composition-api'
+import { defineComponent, onMounted, ref } from "@vue/composition-api";
 import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
 
@@ -136,59 +135,73 @@ interface Entity {
     len: number;
 }
 
-export default  defineComponent({
+export default defineComponent({
     name: "JTools",
 
     setup() {
-    },
+        const headers = [
+            {
+                text: "Input",
+                align: "start",
+                value: "input",
+            },
+            { text: "Processed URL", value: "url" },
+            { text: "Matches Email Provider", value: "email" },
+            { text: "Resolves?", value: "resolves" },
+            { text: "Meta", value: "meta" },
+            { text: "Response Size (B)", value: "len" },
+        ];
 
-    data: function () {
-        return {
-            headers: [
-                {
-                    text: "Input",
-                    align: "start",
-                    value: "input",
-                },
-                { text: "Processed URL", value: "url" },
-                { text: "Matches Email Provider", value: "email" },
-                { text: "Resolves?", value: "resolves" },
-                { text: "Meta", value: "meta" },
-                { text: "Response Size (B)", value: "len" },
-            ],
-            items: [] as Entity[],
-            inputs: "me@gmail.com\nmainbox@email.com\nwhwew@sdfgdgref.com\nhttp://www.yahoo.com\nhttps://www.secure.com\nwww.google.com\nthisisnotreallyadomainisitno.co.ac.uk\nwww.domain.com/something\n" as string,
-            emailsprovidersinput: "gmail.com\nhotmail.com\n" as string,
-            emailproviders: [] as string[],
-            search: "" as string,
+        const items = ref<Entity[]>([]);
+
+        const inputs = ref(
+            "me@gmail.com\nmainbox@email.com\nwhwew@sdfgdgref.com\nhttp://www.yahoo.com\nhttps://www.secure.com\nwww.google.com\nthisisnotreallyadomainisitno.co.ac.uk\nwww.domain.com/something\n"
+        );
+
+        const emailsprovidersinput = ref("gmail.com\nhotmail.com\n");
+
+        // TOFO fix this 'any'
+        const emailproviders = ref<any>([]);
+
+        const search = ref("");
+
+        const processedinput = () => {
+            let spl: Array<string> = inputs.value.split("\n");
+            let count: number = 0;
+            spl.forEach((element: string) => {
+                if (element.trim() !== "") {
+                    count++;
+                }
+            });
+            return count;
         };
-    },
-    computed: {
-        processedinput: function (): number {
-            let spl: Array<string> = this.inputs.split("\n");
-            let count: number = 0;
-            spl.forEach((element: string) => {
-                if (element.trim() !== "") {
-                    count++;
-                }
-            });
-            return count;
-        },
-        progressColor: function (): string {
-            return this.progress < 100 ? "primary" : "green";
-        },
-        listlabel: function (): string {
-            return `Email or URL list (${this.processedinput})`;
-        },
-        emaillabel: function (): string {
-            return `Email providers (${this.processedemailproviders})`;
-        },
-        processedoutput: function (): number {
-            let len: number = this.items.length;
+
+        const processedoutput = () => {
+            let len: number = items.value.length;
             return len;
-        },
-        processedemailproviders: function (): number {
-            let spl: Array<string> = this.emailsprovidersinput.split("\n");
+        };
+
+        const progress = () => {
+            // Prevents division by zero / NaN
+            if (processedinput() === 0) {
+                return 0;
+            } else return (processedoutput() / processedinput()) * 100;
+        };
+
+        const progressColor = () => {
+            return progress() < 100 ? "primary" : "green";
+        };
+
+        const listlabel = () => {
+            return `Email or URL list (${processedinput()})`;
+        };
+
+        const emaillabel = () => {
+            return `Email providers (${processedemailproviders()})`;
+        };
+
+        const processedemailproviders = () => {
+            let spl: Array<string> = emailsprovidersinput.value.split("\n");
             let count: number = 0;
             spl.forEach((element: string) => {
                 if (element.trim() !== "") {
@@ -196,43 +209,38 @@ export default  defineComponent({
                 }
             });
             return count;
-        },
-        progress: function (): number {
-            // Prevents division by zero / NaN
-            if (this.processedinput === 0) {
-                return 0;
-            } else return (this.processedoutput / this.processedinput) * 100;
-        },
-    },
-    mounted: function () {
-        console.clear();
-    },
-    methods: {
-        getEmailColor(email: string) {
+        };
+
+        const clear = () => {
+            items.value = [];
+            console.clear();
+        };
+
+        const getEmailColor = (email: string) => {
             if (email === "Yes") return "green";
             else return "red";
-        },
-        getResponseColor(response: string) {
+        };
+
+        const getResponseColor = (response: string) => {
             if (response === "Yes") return "green";
             else if (response === "No") return "red";
             else return "orange";
-        },
-        clear: function (): void {
-            this.items = [];
-            console.clear();
-        },
-        process: function (): void {
-            this.clear();
+        };
+
+        const process = () => {
+            clear();
             // Process the email providers
 
-            this.emailsprovidersinput.split("\n").forEach((element: string) => {
-                element = element.trim();
-                if (element !== "") {
-                    this.emailproviders.push(element);
-                }
-            });
+            emailsprovidersinput.value
+                .split("\n")
+                .forEach((element: string) => {
+                    element = element.trim();
+                    if (element !== "") {
+                        emailproviders.value.push(element);
+                    }
+                });
 
-            this.inputs.split("\n").forEach((element: string) => {
+            inputs.value.split("\n").forEach((element: string) => {
                 element = element.trim();
 
                 if (element !== "") {
@@ -240,7 +248,9 @@ export default  defineComponent({
 
                     let em = element.match(/(.*)@(?<domain>.*)/);
 
-                    let um = element.match(/^http[s]?:\/\/(?<domain>.\w+(\.\w+)+)/);
+                    let um = element.match(
+                        /^http[s]?:\/\/(?<domain>.\w+(\.\w+)+)/
+                    );
 
                     let im = element.match(/^(?<domain>\w+(\.\w+)+)/);
 
@@ -263,11 +273,11 @@ export default  defineComponent({
                                 /<title>(?<title>.*?)<\/title>/ms
                             );
 
-                            this.items.push({
+                            items.value.push({
                                 id: uuidv4(),
                                 input: element,
                                 url: domain,
-                                email: this.emailproviders.includes(domain)
+                                email: emailproviders.value.includes(domain)
                                     ? "Yes"
                                     : "No",
                                 resolves:
@@ -283,12 +293,12 @@ export default  defineComponent({
                             // `error.request` is an instance of XMLHttpRequest in the browser
                             if (error.response) {
                                 // Request made and server responded
-                                this.items.push({
+                                items.value.push({
                                     id: uuidv4(),
                                     input: element,
                                     url: domain,
                                     resolves: error.response.status,
-                                    email: this.emailproviders.includes(domain)
+                                    email: emailproviders.value.includes(domain)
                                         ? "Yes"
                                         : "No",
                                     meta: "",
@@ -296,12 +306,12 @@ export default  defineComponent({
                                 });
                             } else if (error.request) {
                                 // The request was made but no response was received
-                                this.items.push({
+                                items.value.push({
                                     id: uuidv4(),
                                     input: element,
                                     url: domain,
                                     resolves: "No",
-                                    email: this.emailproviders.includes(domain)
+                                    email: emailproviders.value.includes(domain)
                                         ? "Yes"
                                         : "No",
                                     meta: "",
@@ -309,12 +319,12 @@ export default  defineComponent({
                                 });
                             } else {
                                 // Something happened in setting up the request that triggered an Error
-                                this.items.push({
+                                items.value.push({
                                     id: uuidv4(),
                                     input: element,
                                     url: domain,
                                     resolves: "Error",
-                                    email: this.emailproviders.includes(domain)
+                                    email: emailproviders.value.includes(domain)
                                         ? "Yes"
                                         : "No",
                                     meta: "",
@@ -324,11 +334,12 @@ export default  defineComponent({
                         });
                 }
             });
-        },
-        excel: function () {
+        };
+
+        const excel = () => {
             // strip out the id
 
-            let data = this.items.map((x) => {
+            let data = items.value.map((x) => {
                 return {
                     input: x.input,
                     url: x.url,
@@ -347,7 +358,30 @@ export default  defineComponent({
             } catch (e) {
                 console.error("export error");
             }
-        },
+        };
+
+        onMounted(clear);
+
+        return {
+            headers,
+            items,
+            inputs,
+            emailsprovidersinput,
+            search,
+            emailproviders,
+            processedinput,
+            processedoutput,
+            progress,
+            progressColor,
+            listlabel,
+            emaillabel,
+            processedemailproviders,
+            excel,
+            process,
+            getEmailColor,
+            getResponseColor,
+            clear,
+        };
     },
 });
 </script>
