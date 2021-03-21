@@ -138,7 +138,7 @@ export default defineComponent({
     name: "jTools",
 
     metaInfo: {
-      title: 'jTools',
+        title: "jTools",
     },
 
     setup() {
