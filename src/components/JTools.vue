@@ -236,7 +236,7 @@ export default Vue.extend({
 
                     let em = element.match(/(.*)@(?<domain>.*)/);
 
-                    let um = element.match(/^http[s]?:\/\/(?<domain>.*)/);
+                    let um = element.match(/^http[s]?:\/\/(?<domain>.\w+(\.\w+)+)/);
 
                     let im = element.match(/^(?<domain>\w+(\.\w+)+)/);
 
