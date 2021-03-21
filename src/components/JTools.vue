@@ -119,7 +119,8 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
+
+import {defineComponent } from '@vue/composition-api'
 import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
 
@@ -135,8 +136,11 @@ interface Entity {
     len: number;
 }
 
-export default Vue.extend({
+export default  defineComponent({
     name: "JTools",
+
+    setup() {
+    },
 
     data: function () {
         return {
