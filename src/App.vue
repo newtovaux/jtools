@@ -1,7 +1,15 @@
 <template>
     <v-app>
         <v-app-bar app color="primary" dark>
-            <div class="d-flex align-center">jTools</div>
+            <v-toolbar-title>jTools</v-toolbar-title>
+            <v-spacer></v-spacer>
+            <span>
+                Ensure you have the
+                <a class="white--text"
+                    href="https://chrome.google.com/webstore/detail/allow-cors-access-control/lhobafahddgcelffkeicbaginigeejlf?hl=en"
+                >
+                    Chrome CORS plugin enabled</a>
+            </span>
         </v-app-bar>
 
         <v-main>

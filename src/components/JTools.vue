@@ -1,16 +1,6 @@
 <template>
     <v-container>
-        <v-row class="text-center">
-            <v-col>
-                Ensure you have the
-                <a
-                    href="https://chrome.google.com/webstore/detail/allow-cors-access-control/lhobafahddgcelffkeicbaginigeejlf?hl=en"
-                >
-                    Chrome CORS plugin enabled </a
-                >.
-            </v-col>
-        </v-row>
-        <v-row>
+        <v-row class="mt-3">
             <v-col cols="8">
                 <v-textarea
                     outlined
@@ -19,6 +9,7 @@
                     placeholder="email@domain.com or http://www.web.com"
                     v-model="inputs"
                     hide-details="true"
+                    class="elevation-1"
                 ></v-textarea>
             </v-col>
             <v-col cols="4">
@@ -29,6 +20,7 @@
                     placeholder="gmail.com"
                     v-model="emailsprovidersinput"
                     hide-details="true"
+                    class="elevation-1"
                 ></v-textarea>
             </v-col>
         </v-row>
@@ -38,6 +30,7 @@
                     height="25"
                     :value="progress()"
                     :color="progressColor()"
+                    class="elevation-1"
                 >
                     <template v-slot:default="{ value }">
                         <strong class="mr-2">{{ Math.ceil(value) }}%</strong>({{
@@ -152,7 +145,7 @@ export default defineComponent({
                 value: "input",
             },
             { text: "Processed URL", value: "url" },
-            { text: "Matches Email Provider", value: "email" },
+            { text: "Matches Email Providers", value: "email" },
             { text: "Resolves?", value: "resolves" },
             { text: "Title", value: "meta" },
             { text: "Response Size (B)", value: "len" },
