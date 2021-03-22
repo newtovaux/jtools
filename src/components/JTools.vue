@@ -5,7 +5,7 @@
                 <v-textarea
                     outlined
                     name="input-7-4"
-                    :label="listlabel()"
+                    :label="listlabel"
                     placeholder="email@domain.com or http://www.web.com"
                     v-model="inputs"
                     hide-details="true"
@@ -16,7 +16,7 @@
                 <v-textarea
                     outlined
                     name="input-7-4"
-                    :label="emaillabel()"
+                    :label="emaillabel"
                     placeholder="gmail.com"
                     v-model="emailsprovidersinput"
                     hide-details="true"
@@ -29,7 +29,7 @@
                 <v-progress-linear
                     height="25"
                     :value="progress()"
-                    :color="progressColor()"
+                    :color="progressColor"
                     class="elevation-1"
                 >
                     <template v-slot:default="{ value }">
@@ -57,7 +57,7 @@
                             class="ma-1"
                             depressed
                             color="primary"
-                            @click="process"
+                            @click="process()"
                         >
                             Process
                         </v-btn>
@@ -65,7 +65,7 @@
                             class="ma-1"
                             depressed
                             color="secondary"
-                            @click="excel"
+                            @click="excel()"
                         >
                             Export
                         </v-btn>
@@ -118,7 +118,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref } from "@vue/composition-api";
+import { defineComponent, onMounted, ref, computed } from "@vue/composition-api";
 import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
 
@@ -192,17 +192,17 @@ export default defineComponent({
             } else return (processedoutput() / processedinput()) * 100;
         };
 
-        const progressColor = () => {
+        const progressColor = computed(() => {
             return progress() < 100 ? "primary" : "green";
-        };
+        });
 
-        const listlabel = () => {
+        const listlabel = computed(() => {
             return `Email or URL list (${processedinput()})`;
-        };
+        });
 
-        const emaillabel = () => {
+        const emaillabel = computed(() => {
             return `Email providers (${processedemailproviders()})`;
-        };
+        });
 
         const processedemailproviders = () => {
             let spl: Array<string> = emailsprovidersinput.value.split("\n");
