@@ -70,12 +70,6 @@
                             Export
                         </v-btn>
                         <v-spacer></v-spacer>
-                        <v-switch
-                            inset
-                            label="Assume https"
-                            v-model="https"
-                        ></v-switch>
-                        <v-spacer></v-spacer>
                         <v-text-field
                             v-model="search"
                             append-icon="mdi-magnify"
@@ -101,13 +95,22 @@
                                 {{ item.email }}
                             </v-chip>
                         </template>
-                        <template v-slot:[`item.resolves`]="{ item }">
+                        <template v-slot:[`item.resolves_http`]="{ item }">
                             <v-chip
                                 small
-                                :color="getResponseColor(item.resolves)"
+                                :color="getResponseColor(item.resolves_http)"
                                 dark
                             >
-                                {{ item.resolves }}
+                                {{ item.resolves_http }}
+                            </v-chip>
+                        </template>
+                        <template v-slot:[`item.resolves_https`]="{ item }">
+                            <v-chip
+                                small
+                                :color="getResponseColor(item.resolves_https)"
+                                dark
+                            >
+                                {{ item.resolves_https }}
                             </v-chip>
                         </template>
                     </v-data-table>
@@ -129,7 +132,8 @@ interface Entity {
     input: string;
     url: string;
     email: string;
-    resolves: string;
+    resolves_http: string;
+    resolves_https: string,
     meta: string;
     len: number;
 }
@@ -150,7 +154,8 @@ export default defineComponent({
             },
             { text: "Processed URL", value: "url" },
             { text: "Matches Email Providers", value: "email" },
-            { text: "Resolves?", value: "resolves" },
+            { text: "Resolves http?", value: "resolves_http" },
+            { text: "Resolves https?", value: "resolves_https" },
             { text: "Title", value: "meta" },
             { text: "Response Size (B)", value: "len" },
         ];
@@ -158,7 +163,7 @@ export default defineComponent({
         const items = ref<Entity[]>([]);
 
         const inputs = ref(
-            "me@gmail.com\nmainbox@email.com\nwhwew@sdfgdgref.com\nhttp://www.yahoo.com\nhttps://www.secure.com\nwww.google.com\nthisisnotreallyadomainisitno.co.ac.uk\nwww.domain.com/something\n"
+            "me@my-website.co.uk\nwww.my-website.com\nhttp://my-website.com\nme@gmail.com\nmainbox@email.com\nwhwew@sdfgdgref.com\nhttp://www.yahoo.com\nhttps://www.secure.com\nwww.google.com\nthisisnotreallyadomainisitno.co.ac.uk\nwww.domain.com/something\n"
         );
 
         const emailsprovidersinput = ref("gmail.com\nhotmail.com\n");
@@ -166,8 +171,6 @@ export default defineComponent({
         const emailproviders = ref<string[]>([]);
 
         const search = ref("");
-
-        const https = ref(true);
 
         const processedinput = () => {
             let spl: Array<string> = inputs.value.split("\n");
@@ -231,6 +234,99 @@ export default defineComponent({
             else return "orange";
         };
 
+        const test = async (input: string) => {
+            let domain = "";
+            let email_regex = input.match(/(.*)@(?<domain>.*)/);
+            let url_regex = input.match(
+                /^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?(?<domain>[^:\/?]+)/
+            );
+
+            if (email_regex != null) {
+                // looks like an email
+                domain = email_regex?.groups?.domain ?? "Unknown";
+            } else if (url_regex != null) {
+                // looks like an URL
+                domain = url_regex?.groups?.domain ?? "Unknown";
+            } else  {
+                domain = "Unknown";
+            }
+
+            let meta = '';
+            let http_len = 0;
+            let https_len = 0;
+
+            // do the http test
+
+            let http_resolves = '';
+
+            await axios
+                .get('http://' + domain)
+                .then((response: any) => {
+                    let mm = response.data.match(
+                        /<title>(?<title>.*?)<\/title>/ms
+                    );
+                    meta = mm != null ? mm.groups.title.trim() : null;
+                    http_resolves = 'Yes';
+                    http_len = response.data.length;
+                })
+                .catch((error: any) => {
+                    // `error.request` is an instance of XMLHttpRequest in the browser
+                    if (error.response) {
+                        // Request made and server responded with an error
+                        http_resolves = 'Error';
+                    } else if (error.request) {
+                        // The request was made but no response was received
+                        http_resolves = 'No';
+                    }
+                });
+
+
+            // do the https test
+
+            let https_resolves = '';
+
+            await axios
+                .get('https://' + domain)
+                .then((response: any) => {
+                    let mm = response.data.match(
+                        /<title>(?<title>.*?)<\/title>/ms
+                    );
+                    // don't overwite the meta data if you already have it
+                    if (meta === "")
+                    {
+                        meta = mm != null ? mm.groups.title.trim() : null;
+                    }
+                    https_resolves = 'Yes';
+                    https_len = response.data.length;
+                })
+                .catch((error: any) => {
+                    // `error.request` is an instance of XMLHttpRequest in the browser
+                    if (error.response) {
+                        // Request made and server responded with an error
+                        https_resolves = 'Error';
+                    } else if (error.request) {
+                        // The request was made but no response was received
+                        https_resolves = 'No';
+                    }
+                });
+
+            
+
+            const e: Entity = {
+                id: uuidv4(),
+                input: input,
+                url: domain,
+                email: emailproviders.value.includes(domain)
+                    ? "Yes"
+                    : "No",
+                resolves_http: http_resolves,
+                resolves_https: https_resolves,
+                meta: meta,
+                len: Math.max(https_len, http_len)
+            }
+            return e;
+        }
+
         const process = () => {
             clear();
             // Process the email providers
@@ -248,94 +344,98 @@ export default defineComponent({
                 element = element.trim();
 
                 if (element !== "") {
-                    let domain = "";
 
-                    let em = element.match(/(.*)@(?<domain>.*)/);
+                    test(element)
+                    .then((response) => {
+                        items.value.push(response)
+                    });
 
-                    let um = element.match(
-                        /^http[s]?:\/\/(?<domain>.\w+(\.\w+)+)/
-                    );
+                    // let domain = "";
 
-                    let im = element.match(/^(?<domain>\w+(\.\w+)+)/);
+                    // let em = element.match(/(.*)@(?<domain>.*)/);
 
-                    if (em != null) {
-                        // looks like an email
-                        domain = em?.groups?.domain ?? "Unknown";
-                    } else if (um != null) {
-                        // looks like an URL
-                        domain = um?.groups?.domain ?? "Unknown";
-                    } else if (im != null) {
-                        domain = im?.groups?.domain ?? "Unknown";
-                    }
+                    // let um = element.match(
+                    //     /^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?(?<domain>[^:\/?]+)/
+                    // );
 
-                    // check if the element matches
+                    // if (em != null) {
+                    //     // looks like an email
+                    //     domain = em?.groups?.domain ?? "Unknown";
+                    // } else if (um != null) {
+                    //     // looks like an URL
+                    //     domain = um?.groups?.domain ?? "Unknown";
+                    // } else  {
+                    //     domain = "Unknown";
+                    // }
 
-                    axios
-                        .get((https.value ? "https" : "http") + `://${domain}`)
-                        .then((response: any) => {
-                            let mm = response.data.match(
-                                /<title>(?<title>.*?)<\/title>/ms
-                            );
+                    // // check if the element matches
 
-                            items.value.push({
-                                id: uuidv4(),
-                                input: element,
-                                url: domain,
-                                email: emailproviders.value.includes(domain)
-                                    ? "Yes"
-                                    : "No",
-                                resolves:
-                                    response.status === 200
-                                        ? "Yes"
-                                        : "No (Not 200)",
-                                meta:
-                                    mm != null ? mm.groups.title.trim() : null,
-                                len: response.data.length,
-                            });
-                        })
-                        .catch((error: any) => {
-                            // `error.request` is an instance of XMLHttpRequest in the browser
-                            if (error.response) {
-                                // Request made and server responded
-                                items.value.push({
-                                    id: uuidv4(),
-                                    input: element,
-                                    url: domain,
-                                    resolves: error.response.status,
-                                    email: emailproviders.value.includes(domain)
-                                        ? "Yes"
-                                        : "No",
-                                    meta: "",
-                                    len: 0,
-                                });
-                            } else if (error.request) {
-                                // The request was made but no response was received
-                                items.value.push({
-                                    id: uuidv4(),
-                                    input: element,
-                                    url: domain,
-                                    resolves: "No",
-                                    email: emailproviders.value.includes(domain)
-                                        ? "Yes"
-                                        : "No",
-                                    meta: "",
-                                    len: 0,
-                                });
-                            } else {
-                                // Something happened in setting up the request that triggered an Error
-                                items.value.push({
-                                    id: uuidv4(),
-                                    input: element,
-                                    url: domain,
-                                    resolves: "Error",
-                                    email: emailproviders.value.includes(domain)
-                                        ? "Yes"
-                                        : "No",
-                                    meta: "",
-                                    len: 0,
-                                });
-                            }
-                        });
+                    // axios
+                    //     .get((https.value ? "https" : "http") + `://${domain}`)
+                    //     .then((response: any) => {
+                    //         let mm = response.data.match(
+                    //             /<title>(?<title>.*?)<\/title>/ms
+                    //         );
+
+                    //         items.value.push({
+                    //             id: uuidv4(),
+                    //             input: element,
+                    //             url: domain,
+                    //             email: emailproviders.value.includes(domain)
+                    //                 ? "Yes"
+                    //                 : "No",
+                    //             resolves:
+                    //                 response.status === 200
+                    //                     ? "Yes"
+                    //                     : "No (Not 200)",
+                    //             meta:
+                    //                 mm != null ? mm.groups.title.trim() : null,
+                    //             len: response.data.length,
+                    //         });
+                    //     })
+                    //     .catch((error: any) => {
+                    //         // `error.request` is an instance of XMLHttpRequest in the browser
+                    //         if (error.response) {
+                    //             // Request made and server responded
+                    //             items.value.push({
+                    //                 id: uuidv4(),
+                    //                 input: element,
+                    //                 url: domain,
+                    //                 resolves: error.response.status,
+                    //                 email: emailproviders.value.includes(domain)
+                    //                     ? "Yes"
+                    //                     : "No",
+                    //                 meta: "",
+                    //                 len: 0,
+                    //             });
+                    //         } else if (error.request) {
+                    //             // The request was made but no response was received
+                    //             items.value.push({
+                    //                 id: uuidv4(),
+                    //                 input: element,
+                    //                 url: domain,
+                    //                 resolves: "No",
+                    //                 email: emailproviders.value.includes(domain)
+                    //                     ? "Yes"
+                    //                     : "No",
+                    //                 meta: "",
+                    //                 len: 0,
+                    //             });
+                    //         } else {
+                    //             // Something happened in setting up the request that triggered an Error
+                    //             items.value.push({
+                    //                 id: uuidv4(),
+                    //                 input: element,
+                    //                 url: domain,
+                    //                 resolves: "Error",
+                    //                 email: emailproviders.value.includes(domain)
+                    //                     ? "Yes"
+                    //                     : "No",
+                    //                 meta: "",
+                    //                 len: 0,
+                    //             });
+                    //         }
+                    //     });
                 }
             });
         };
@@ -347,7 +447,8 @@ export default defineComponent({
                 return {
                     input: x.input,
                     url: x.url,
-                    resolves: x.resolves,
+                    resolves_http: x.resolves_http,
+                    resolves_https: x.resolves_https,
                     email: x.email,
                     meta: x.meta,
                     len: x.len,
@@ -385,7 +486,6 @@ export default defineComponent({
             getEmailColor,
             getResponseColor,
             clear,
-            https,
         };
     },
 });
